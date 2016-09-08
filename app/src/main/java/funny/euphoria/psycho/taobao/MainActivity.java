@@ -11,9 +11,11 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import javax.crypto.NoSuchPaddingException;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 
 public class MainActivity extends Activity {
@@ -25,6 +27,8 @@ public class MainActivity extends Activity {
     private EditText mContentText;
     private Button mSearchButton;
     private Button mMakeButton;
+    private Button mUpdateButton;
+
     private DatabaseHelper mDatabaseHelper;
 
     private boolean shouldAskPermission() {
@@ -38,15 +42,13 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         if (shouldAskPermission()) {
-            String[] perms = {"android.permission.READ_EXTERNAL_STORAGE","android.permission.WRITE_EXTERNAL_STORAGE"};
+            String[] perms = {"android.permission.READ_EXTERNAL_STORAGE", "android.permission.WRITE_EXTERNAL_STORAGE"};
 
             int permsRequestCode = 200;
             requestPermissions(perms, permsRequestCode);
         }
         String dataFileName = Environment.getExternalStorageDirectory().getAbsolutePath() + "/datas.db";
-        if(new File(dataFileName).exists()){
-            Toast.makeText(this,"Exists.",Toast.LENGTH_LONG).show();
-        }
+
         mDatabaseHelper = new DatabaseHelper(this, dataFileName);
 
         mClipboardManager = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
@@ -54,7 +56,31 @@ public class MainActivity extends Activity {
         mMakeButton = (Button) findViewById(R.id.make_btn);
         mContentText = (EditText) findViewById(R.id.editText_content);
         mSearchText = (EditText) findViewById(R.id.editText_query);
+        mUpdateButton = (Button) findViewById(R.id.update_btn);
+        mUpdateButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String content = mContentText.getText().toString();
 
+                if (content.length() > 0) {
+                    String[] array = content.split("\n");
+                    mDatabaseHelper.updateItem(array);
+                } else {
+                    String search = mSearchText.getText().toString().trim();
+
+                    try {
+                        CryptLib cryptLib=new CryptLib();
+                    String encrypted=    cryptLib.encrypt(search,"a3106b1138cf947f69b7038942976a3", "EEGTuhyHRaFrQMhl");
+                        mContentText.setText(encrypted);
+                        mClipboardManager.setPrimaryClip(ClipData.newPlainText("",encrypted));
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                }
+            }
+        });
         mSearchButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -79,7 +105,7 @@ public class MainActivity extends Activity {
                         stringBuilder.append("解压密码：").append(array[2]).append("\n");
                     }
                     if (array[3].length() > 0) {
-                        stringBuilder.append("练习文件：").append(array[3            ].replace("链接：", "")).append("\n");
+                        stringBuilder.append("练习文件：").append(array[3].replace("链接：", "")).append("\n");
                     }
                     mClipboardManager.setPrimaryClip(ClipData.newPlainText("", stringBuilder.toString()));
                 }

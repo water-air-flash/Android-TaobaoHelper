@@ -1,12 +1,13 @@
 package funny.euphoria.psycho.taobao;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
-    public static final int DATABASE_VERSION =1;
+    public static final int DATABASE_VERSION = 1;
 
     public DatabaseHelper(Context context, String fullName) {
         super(context, fullName, null, DATABASE_VERSION);
@@ -22,10 +23,23 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 //        db.execSQL(sql);
     }
 
+    public void updateItem(String[] values) {
+        if (values.length >3) {
+            ContentValues contentValues = new ContentValues(10);
+            // contentValues.put("{0}", values[{1}]);
+            contentValues.put("a", values[0]);
+            contentValues.put("b", values[1]);
+            contentValues.put("c", values[2]);
+            contentValues.put("d", values[3]);
+            SQLiteDatabase db = this.getWritableDatabase();
+            db.update("a",contentValues,"a=?" ,new String[]{values[0]});
+        }
+    }
+
     public String queryItem(String condition) {
         SQLiteDatabase db = this.getWritableDatabase();
         StringBuilder stringBuilder = new StringBuilder();
-        String sql =  "SELECT * FROM a  WHERE a LIKE '%"+condition+"%' COLLATE NOCASE OR f LIKE '%"+condition+"%' COLLATE NOCASE  LIMIT 1;";
+        String sql = "SELECT * FROM a  WHERE a LIKE '%" + condition + "%' COLLATE NOCASE OR f LIKE '%" + condition + "%' COLLATE NOCASE  LIMIT 1;";
         Cursor cursor = db.rawQuery(sql, null);
         if (cursor.moveToFirst()) {
             stringBuilder.append(cursor.getString(1)).append('\n')
